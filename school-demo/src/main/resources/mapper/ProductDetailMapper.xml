@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ProductDetailMapper">
+    <resultMap id="BaseResultMap" type="com.example.entity.ProductDetail">
+        <id column="id" property="Id"/>
+        <result column="product_id" property="productId"/>
+        <result column="view_count" property="viewCount"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT 
+            pd.id,
+            pd.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url,
+            pd.view_count,
+            (SELECT COUNT(*) FROM likes l WHERE l.product_id = pd.product_id) AS likeCount,
+            (SELECT COUNT(*) FROM orders o WHERE o.product_id = pd.product_id) AS favoriteCount,
+            (SELECT COUNT(*) FROM carts ca WHERE ca.product_id = pd.product_id) AS purchaseCount,
+            (SELECT COUNT(*) FROM comments c WHERE c.product_id = pd.product_id) AS commentCount
+        FROM
+            product_detail pd
+        JOIN 
+            products p ON pd.product_id = p.product_id
+    </select>
+
+    <select id="findByCategory" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT 
+            pd.id,
+            pd.product_id,
+            p.product_name AS productName,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url AS imageUrl,
+            pd.purchase_count,
+            pd.view_count,
+            (SELECT COUNT(*) FROM likes l WHERE l.product_id = pd.product_id) AS likeCount,
+            (SELECT COUNT(*) FROM carts ca WHERE ca.product_id = pd.product_id) AS favoriteCount,
+            (SELECT COUNT(*) FROM orders o WHERE o.product_id = pd.product_id) AS purchaseCount,
+            (SELECT COUNT(*) FROM comments c WHERE c.product_id = pd.product_id) AS commentCount
+        FROM 
+            product_detail pd
+        JOIN 
+            products p ON pd.product_id = p.product_id
+        WHERE 
+            p.category = #{category}
+    </select>
+
+
+    <select id="findById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT 
+            pd.id,
+            pd.product_id,
+            p.product_name AS productName,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url AS imageUrl,
+            pd.purchase_count,
+            pd.view_count,
+            (SELECT COUNT(*) FROM likes l WHERE l.product_id = pd.product_id) AS likeCount,
+            (SELECT COUNT(*) FROM carts ca WHERE ca.product_id = pd.product_id) AS favoriteCount,
+            (SELECT COUNT(*) FROM orders o WHERE o.product_id = pd.product_id) AS purchaseCount,
+            (SELECT COUNT(*) FROM comments c WHERE c.product_id = pd.product_id) AS commentCount
+        FROM 
+            product_detail pd
+        JOIN 
+            products p ON pd.product_id = p.product_id
+        WHERE 
+            pd.id = #{Id}
+    </select>
+
+
+    <insert id="insert" parameterType="com.example.entity.ProductDetail" useGeneratedKeys="true" keyProperty="Id">
+        INSERT INTO product_detail (product_id,favorite_count, like_count, purchase_count, view_count)
+        VALUES (#{productId}, #{favoriteCount}, #{likeCount}, #{purchaseCount}, #{viewCount})
+    </insert>
+
+    <update id="update" parameterType="java.lang.Integer">
+        UPDATE product_detail
+        SET
+            favorite_count = #{favoriteCount},
+            like_count = #{likeCount},
+            purchase_count = #{purchaseCount},
+            view_count = #{viewCount}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateViewCount" parameterType="java.lang.Integer">
+        UPDATE product_detail
+        SET view_count = view_count + 1
+        WHERE id = #{productDetailId}
+    </update>
+
+    <update id="updateLikeCount" parameterType="java.lang.Integer">
+        UPDATE product_detail
+        SET like_count = like_count + 1
+        WHERE id = #{productDetailId}
+    </update>
+
+    <update id="updateFavoriteCount" parameterType="java.lang.Integer">
+        UPDATE product_detail
+        SET favorite_count = favorite_count + 1
+        WHERE id = #{productDetailId}
+    </update>
+
+    <!-- 根据商品ID获取商品详情ID -->
+    <select id="getDetailIdByProductId" resultType="java.lang.Integer">
+        SELECT id 
+        FROM product_detail 
+        WHERE product_id = #{productId}
+    </select>
+
+</mapper>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ProductAnalyticsMapper">
+    <resultMap id="ProductAnalyticsMap" type="com.example.dto.ProductAnalyticsDTO">
+        <id column="product_id" property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="category" property="category"/>
+        <result column="price" property="price"/>
+        <result column="description" property="description"/>
+        <result column="stock" property="stock"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="favorite_count" property="favoriteCount"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="comment_count" property="commentCount"/>
+        <result column="purchase_count" property="purchaseCount"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="total_sales" property="totalSales"/>
+        <result column="daily_views" property="dailyViews"/>
+        <result column="conversion_rate" property="conversionRate"/>
+    </resultMap>
+
+    <!-- 获取销量最高的N个商品 -->
+    <select id="findTopSellingProducts" resultMap="ProductAnalyticsMap">
+        SELECT 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url,
+            MAX(pd.view_count) as view_count,
+            (SELECT COUNT(*) FROM likes l WHERE l.product_id = p.product_id) as like_count,
+            (SELECT COUNT(*) FROM comments c WHERE c.product_id = p.product_id) as comment_count,
+            COUNT(o.id) as purchase_count,
+            SUM(o.total_price) as total_sales,
+            (COUNT(o.id) * 100.0 / NULLIF(MAX(pd.view_count), 0)) as conversion_rate
+        FROM 
+            products p
+            LEFT JOIN orders o ON p.product_id = o.product_id
+            LEFT JOIN product_detail pd ON p.product_id = pd.product_id
+        GROUP BY 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url
+        ORDER BY 
+            purchase_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 获取指定商品的销售数据 -->
+    <select id="findProductAnalytics" resultMap="ProductAnalyticsMap">
+        SELECT 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url,
+            MAX(pd.view_count) as view_count,
+            (SELECT COUNT(*) FROM likes l WHERE l.product_id = p.product_id) as like_count,
+            (SELECT COUNT(*) FROM comments c WHERE c.product_id = p.product_id) as comment_count,
+            COUNT(o.id) as purchase_count,
+            SUM(o.total_price) as total_sales,
+            (COUNT(o.id) * 100.0 / NULLIF(MAX(pd.view_count), 0)) as conversion_rate
+        FROM 
+            products p
+            LEFT JOIN orders o ON p.product_id = o.product_id
+            LEFT JOIN product_detail pd ON p.product_id = pd.product_id
+        WHERE 
+            p.product_id = #{productId}
+        GROUP BY 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url
+    </select>
+
+    <!-- 获取所有商品的销售数据 -->
+    <select id="findAllProductsAnalytics" resultMap="ProductAnalyticsMap">
+        SELECT 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url,
+            MAX(pd.view_count) as view_count,
+            (SELECT COUNT(*) FROM likes l WHERE l.product_id = p.product_id) as like_count,
+            (SELECT COUNT(*) FROM comments c WHERE c.product_id = p.product_id) as comment_count,
+            COUNT(o.id) as purchase_count,
+            SUM(o.total_price) as total_sales,
+            (COUNT(o.id) * 100.0 / NULLIF(MAX(pd.view_count), 0)) as conversion_rate
+        FROM 
+            products p
+            LEFT JOIN orders o ON p.product_id = o.product_id
+            LEFT JOIN product_detail pd ON p.product_id = pd.product_id
+        GROUP BY 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url
+    </select>
+
+    <!-- 获取指定类别的商品销售数据 -->
+    <select id="findProductAnalyticsByCategory" resultMap="ProductAnalyticsMap">
+        SELECT 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url,
+            MAX(pd.view_count) as view_count,
+            (SELECT COUNT(*) FROM likes l WHERE l.product_id = p.product_id) as like_count,
+            (SELECT COUNT(*) FROM comments c WHERE c.product_id = p.product_id) as comment_count,
+            COUNT(o.id) as purchase_count,
+            SUM(o.total_price) as total_sales,
+            (COUNT(o.id) * 100.0 / NULLIF(MAX(pd.view_count), 0)) as conversion_rate
+        FROM 
+            products p
+            LEFT JOIN orders o ON p.product_id = o.product_id
+            LEFT JOIN product_detail pd ON p.product_id = pd.product_id
+        WHERE 
+            p.category = #{category}
+        GROUP BY 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url
+    </select>
+
+    <!-- 获取指定时间范围内的商品销售数据 -->
+    <select id="findProductAnalyticsByDateRange" resultMap="ProductAnalyticsMap">
+        SELECT 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url,
+            MAX(pd.view_count) as view_count,
+            (SELECT COUNT(*) FROM likes l WHERE l.product_id = p.product_id) as like_count,
+            (SELECT COUNT(*) FROM comments c WHERE c.product_id = p.product_id) as comment_count,
+            COUNT(o.id) as purchase_count,
+            SUM(o.total_price) as total_sales,
+            (COUNT(o.id) * 100.0 / NULLIF(MAX(pd.view_count), 0)) as conversion_rate
+        FROM 
+            products p
+            LEFT JOIN orders o ON p.product_id = o.product_id AND o.created_at BETWEEN #{startDate} AND #{endDate}
+            LEFT JOIN product_detail pd ON p.product_id = pd.product_id
+        GROUP BY 
+            p.product_id,
+            p.product_name,
+            p.category,
+            p.price,
+            p.description,
+            p.stock,
+            p.image_url
+    </select>
+</mapper> 

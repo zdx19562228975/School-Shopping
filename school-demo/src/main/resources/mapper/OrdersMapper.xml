@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.OrdersMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.entity.Orders">
+        <id column="id" property="id" />
+        <result column="product_id" property="productId" />
+        <result column="logistics_status" property="logisticsStatus" />
+        <result column="created_at" property="createdAt" />
+        <result column="number" property="number" />
+        <result column="single_price" property="singlePrice" />
+        <result column="total_price" property="totalPrice" />
+        <result column="address_id" property="addressId" />
+    </resultMap>
+
+    <!-- 订单详情查询结果映射 -->
+    <resultMap id="OrderDetailMap" type="com.example.dto.OrderDTO" extends="BaseResultMap">
+        <result column="product_name" property="productName" />
+        <result column="delivery_address" property="deliveryAddress" />
+        <result column="delivery_phone" property="deliveryPhone" />
+        <result column="delivery_person_name" property="deliveryPersonName" />
+    </resultMap>
+
+    <!-- 获取订单详情 -->
+    <select id="getOrderDetail" resultMap="OrderDetailMap">
+        SELECT 
+            o.*,
+            p.product_name,
+            a.delivery_address,
+            a.delivery_phone,
+            a.delivery_person_name,
+            p.image_url AS productImage
+        FROM orders o
+        LEFT JOIN products p ON o.product_id = p.product_id
+        LEFT JOIN address_management a ON o.address_id = a.id
+        WHERE o.id = #{orderId}
+    </select>
+
+    <!-- 获取用户订单列表 -->
+    <select id="getOrderList" resultMap="OrderDetailMap">
+        SELECT 
+            o.*,
+            p.product_name,
+            a.delivery_address,
+            a.delivery_phone,
+            a.delivery_person_name,
+            p.image_url AS productImage
+        FROM orders o
+        LEFT JOIN products p ON o.product_id = p.product_id
+        LEFT JOIN address_management a ON o.address_id = a.id
+        WHERE a.user_id = #{userId}
+        ORDER BY o.created_at DESC
+    </select>
+
+    <select id="getOrderListAll" resultMap="OrderDetailMap">
+        SELECT
+            o.*,
+            p.product_name,
+            a.delivery_address,
+            a.delivery_phone,
+            a.delivery_person_name,
+            p.image_url AS productImage
+        FROM orders o
+                 LEFT JOIN products p ON o.product_id = p.product_id
+                 LEFT JOIN address_management a ON o.address_id = a.id
+        ORDER BY o.created_at DESC
+    </select>
+
+</mapper> 

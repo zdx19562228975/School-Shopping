@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.UserAccountMapper">
+    <resultMap id="BaseResultMap" type="com.example.entity.UserAccount">
+        <id column="id" property="id"/>
+        <result column="account" property="account"/>
+        <result column="password" property="password"/>
+        <result column="email" property="email"/>
+        <result column="true_name" property="trueName"/>
+        <result column="phone_number" property="phoneNumber"/>
+        <result column="birthday" property="birthday"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM user_account
+    </select>
+
+    <select id="findById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT * FROM user_account WHERE id = #{id}
+    </select>
+
+    <select id="findByAccount" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM user_account WHERE account = #{account}
+    </select>
+
+    <select id="findByEmail" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM user_account WHERE email = #{email}
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.UserAccount" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_account (account, password, email, true_name, phone_number, birthday)
+        VALUES (#{account}, #{password}, #{email}, #{trueName}, #{phoneNumber}, #{birthday})
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.UserAccount">
+        UPDATE user_account
+        SET account = #{account},
+            password = #{password},
+            email = #{email},
+            true_name = #{trueName},
+            phone_number = #{phoneNumber},
+            birthday = #{birthday}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM user_account WHERE id = #{id}
+    </delete>
+</mapper> 

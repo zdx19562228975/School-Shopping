@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.CommentsMapper">
+    <resultMap id="BaseResultMap" type="com.example.entity.Comments">
+        <id column="id" property="id"/>
+        <result column="comment_text" property="commentText"/>
+        <result column="product_id" property="productId"/>
+        <result column="user_id" property="userId"/>
+        <result column="type" property="type"/>
+        <result column="score" property="score"/>
+        <result column="image" property="image"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM comments
+    </select>
+
+    <select id="findById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT * FROM comments WHERE id = #{id}
+    </select>
+
+    <select id="findByProductId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT * FROM comments WHERE product_id = #{productId}
+    </select>
+
+    <select id="findByUserId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT * FROM comments WHERE user_id = #{userId}
+    </select>
+
+    <select id="checkCommentExists" resultMap="BaseResultMap">
+        SELECT * FROM comments WHERE user_id = #{userId} AND product_id = #{productId} LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Comments" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO comments (comment_text, product_id, user_id, type, score, image)
+        VALUES (#{commentText}, #{productId}, #{userId}, #{type}, #{score}, #{image})
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.Comments">
+        UPDATE comments
+        SET comment_text = #{commentText},
+            product_id = #{productId},
+            user_id = #{userId},
+            type = #{type},
+            score = #{score},
+            image = #{image}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM comments WHERE id = #{id}
+    </delete>
+</mapper> 

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.AdminAnalyticsMapper">
+    <!-- 获取指定日期范围内的每日订单数 -->
+    <select id="getOrderCountsByDateRange" resultType="java.util.Map">
+        SELECT 
+            DATE(created_at) as order_date,
+            COUNT(*) as order_count
+        FROM 
+            orders
+        WHERE 
+            created_at BETWEEN #{startDate} AND #{endDate}
+        GROUP BY 
+            DATE(created_at)
+        ORDER BY 
+            order_date
+    </select>
+
+    <!-- 获取指定日期范围内的每日营收 -->
+    <select id="getRevenueByDateRange" resultType="java.util.Map">
+        SELECT 
+            DATE(created_at) as revenue_date,
+            SUM(total_price) as daily_revenue
+        FROM 
+            orders
+        WHERE 
+            created_at BETWEEN #{startDate} AND #{endDate}
+        GROUP BY 
+            DATE(created_at)
+        ORDER BY 
+            revenue_date
+    </select>
+
+    <!-- 获取商品总数和在售商品数 -->
+    <select id="getProductStats" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as total_products,
+            COUNT(CASE WHEN stock > 0 THEN 1 END) as active_products
+        FROM 
+            products
+    </select>
+
+    <!-- 获取用户总数和活跃用户数（有订单的用户） -->
+    <select id="getUserStats" resultType="java.util.Map">
+        SELECT 
+            (SELECT COUNT(*) FROM user_account) as total_users,
+            COUNT(DISTINCT address_id) as active_users
+        FROM 
+            orders
+        WHERE 
+            created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    </select>
+
+    <!-- 获取平均订单金额 -->
+    <select id="getAverageOrderAmount" resultType="java.math.BigDecimal">
+        SELECT 
+            AVG(total_price)
+        FROM 
+            orders
+        WHERE 
+            created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    </select>
+
+    <!-- 获取分类销量统计 -->
+    <select id="getCategorySales" resultType="java.util.Map">
+        SELECT 
+            p.category,
+            COUNT(o.id) as sales_count
+        FROM 
+            products p
+            LEFT JOIN orders o ON p.product_id = o.product_id
+        GROUP BY 
+            p.category
+        ORDER BY 
+            sales_count DESC
+    </select>
+
+    <!-- 获取订单状态统计 -->
+    <select id="getOrderStatusStats" resultType="java.util.Map">
+        SELECT
+            logistics_status,
+            COUNT(*) as count,
+            CASE logistics_status
+                WHEN 'PENDING_PAYMENT' THEN '待付款'
+                WHEN 'PENDING_SHIPMENT' THEN '待发货'
+                WHEN 'SHIPPED' THEN '已发货'
+                WHEN 'COMPLETED' THEN '已完成'
+                WHEN 'CANCELLED' THEN '已取消'
+                WHEN 'REFUND_PENDING' THEN '退货申请中'
+                WHEN 'REFUNDED' THEN '已退货'
+            END as status_name
+        FROM 
+            orders
+        GROUP BY 
+            logistics_status
+        ORDER BY 
+            FIELD(logistics_status,
+                'PENDING_PAYMENT',
+                'PENDING_SHIPMENT',
+                'SHIPPED',
+                'COMPLETED',
+                'CANCELLED',
+                'REFUND_PENDING',
+                'REFUNDED'
+            )
+    </select>
+
+    <!-- 获取指定日期范围内的订单状态统计 -->
+    <select id="getOrderStatusStatsByDateRange" resultType="java.util.Map">
+        SELECT
+            logistics_status,
+            COUNT(*) as count,
+            CASE logistics_status
+                WHEN 'PENDING_PAYMENT' THEN '待付款'
+                WHEN 'PENDING_SHIPMENT' THEN '待发货'
+                WHEN 'SHIPPED' THEN '已发货'
+                WHEN 'COMPLETED' THEN '已完成'
+                WHEN 'CANCELLED' THEN '已取消'
+                WHEN 'REFUND_PENDING' THEN '退货申请中'
+                WHEN 'REFUNDED' THEN '已退货'
+            END as status_name
+        FROM 
+            orders
+        WHERE 
+            created_at BETWEEN #{startDate} AND #{endDate}
+        GROUP BY
+        logistics_status
+        ORDER BY 
+            FIELD(logistics_status,
+                'PENDING_PAYMENT',
+                'PENDING_SHIPMENT',
+                'SHIPPED',
+                'COMPLETED',
+                'CANCELLED',
+                'REFUND_PENDING',
+                'REFUNDED'
+            )
+    </select>
+
+    <!-- 获取今日和昨日的订单总数和总收入 -->
+    <select id="getDailyComparison" resultType="java.util.Map">
+        SELECT 
+            COALESCE(SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END), 0) as today_orders,
+            COALESCE(SUM(CASE WHEN DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) THEN 1 ELSE 0 END), 0) as yesterday_orders,
+            COALESCE(SUM(CASE WHEN DATE(created_at) = CURDATE() THEN total_price ELSE 0 END), 0) as today_revenue,
+            COALESCE(SUM(CASE WHEN DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) THEN total_price ELSE 0 END), 0) as yesterday_revenue
+        FROM 
+            orders
+    </select>
+
+    <!-- 获取今日和昨日的商品总数 -->
+    <select id="getProductComparison" resultType="java.util.Map">
+        SELECT 
+            COALESCE(COUNT(*), 0) as total_products,
+            COALESCE(COUNT(CASE WHEN stock > 0 THEN 1 END), 0) as active_products
+        FROM 
+            products
+    </select>
+
+    <!-- 获取今日和昨日的用户总数 -->
+    <select id="getUserComparison" resultType="java.util.Map">
+        SELECT 
+            COALESCE((SELECT COUNT(*) FROM user_account), 0) as total_users,
+            COALESCE((SELECT COUNT(*) FROM user_account WHERE DATE(create_at) &lt;= DATE_SUB(CURDATE(), INTERVAL 1 DAY)), 0) as yesterday_total_users,
+            COALESCE(COUNT(DISTINCT address_id), 0) as active_users
+        FROM 
+            orders
+        WHERE 
+            created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    </select>
+
+    <!-- 获取用户增长趋势 -->
+    <select id="getUserGrowthTrend" resultType="java.util.Map">
+        SELECT 
+            DATE(create_at) as growth_date,
+            COALESCE(COUNT(*), 0) as new_users
+        FROM 
+            user_account
+        WHERE 
+            create_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        GROUP BY 
+            DATE(create_at)
+        ORDER BY 
+            growth_date
+    </select>
+</mapper> 

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ProductMapper">
+    <resultMap id="BaseResultMap" type="com.example.entity.Product">
+        <id column="product_id" property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="category" property="category"/>
+        <result column="price" property="price"/>
+        <result column="description" property="description"/>
+        <result column="stock" property="stock"/>
+        <result column="image_url" property="imageUrl"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM products
+    </select>
+
+    <select id="findById" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT * FROM products WHERE product_id = #{productId}
+    </select>
+
+    <select id="findByCategory" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT * FROM products WHERE category = #{category}
+    </select>
+
+    <insert id="insert" parameterType="com.example.entity.Product" useGeneratedKeys="true" keyProperty="productId">
+        INSERT INTO products (product_name, category, price, description, stock, image_url)
+        VALUES (#{productName}, #{category}, #{price}, #{description}, #{stock}, #{imageUrl})
+    </insert>
+
+    <update id="update" parameterType="com.example.entity.Product">
+        UPDATE products
+        SET product_name = #{productName},
+            category = #{category},
+            price = #{price},
+            description = #{description},
+            stock = #{stock},
+            image_url = #{imageUrl}
+        WHERE product_id = #{productId}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.Integer">
+        DELETE FROM products WHERE product_id = #{productId}
+    </delete>
+
+    <!-- 分页查询所有商品 -->
+    <select id="findByPage" resultMap="BaseResultMap">
+        SELECT * FROM products
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 获取商品总数 -->
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM products
+    </select>
+
+    <!-- 按类别分页查询商品 -->
+    <select id="findByCategoryAndPage" resultMap="BaseResultMap">
+        SELECT * FROM products 
+        WHERE category = #{category}
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 获取指定类别的商品总数 -->
+    <select id="countByCategory" resultType="int">
+        SELECT COUNT(*) FROM products 
+        WHERE category = #{category}
+    </select>
+</mapper> 
